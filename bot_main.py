@@ -2,6 +2,9 @@ import telebot, sqlite3, hashlib
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 fio_dict = dict()
+city_dict = dict()
+age_dict = dict()
+diabet_degree_dict = dict()
 
 with open('token.txt', 'r') as file:
     token = file.read().replace('\n', '')
@@ -40,7 +43,31 @@ def get_name(message):
 def get_patronymic(message):
     global fio_dict
     fio_dict[message.from_user.id] += str(" " + message.text)
-    bot.send_message(message.from_user.id, fio_dict.get(message.from_user.id))
+    # bot.send_message(message.from_user.id, fio_dict.get(message.from_user.id))
+    bot.send_message(message.from_user.id, 'Введите город:')
+    bot.register_next_step_handler(message, get_city)
+
+def get_city(message):
+    global city_dict
+    city_dict[message.from_user.id] = message.text
+    bot.send_message(message.from_user.id, 'Введите ваш возраст:')
+    bot.register_next_step_handler(message, get_age)
+
+def get_age(message):
+    global age_dict
+    age_dict[message.from_user.id] = int(message.text)
+    bot.send_message(message.from_user.id, 'Введите степень диабета (1, 2 или 3):')
+    bot.register_next_step_handler(message, get_diabet_degree)
+
+def get_diabet_degree(message):
+    global age_dict
+    diabet_degree_dict[message.from_user.id] = int(message.text)
+    # bot.send_message(message.from_user.id, '')
+    # bot.register_next_step_handler(message, )
+    bot.send_message(
+        message.from_user.id,
+        f"{fio_dict.get(message.from_user.id)}, {city_dict.get(message.from_user.id)}, {age_dict.get(message.from_user.id)}, {diabet_degree_dict.get(message.from_user.id)}"
+    )
 
 
 bot.polling()
