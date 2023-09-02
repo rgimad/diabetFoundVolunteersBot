@@ -6,6 +6,7 @@ fio_dict = dict()
 city_dict = dict()
 age_dict = dict()
 diabet_degree_dict = dict()
+skill_dict = dict()
 
 with open('token.txt', 'r') as file:
     token = file.read().replace('\n', '')
@@ -101,8 +102,20 @@ def get_diabet_degree(message):
     )
     conn.commit()
     conn.close()
-    bot.send_message(message.from_user.id, "Личные данные записаны. Перейти к анкетированию?")
+    bot.send_message(message.from_user.id, 'Навыки и умения, которыми вы могли бы быть полезными фонду:')
+    bot.register_next_step_handler(message, get_skills)
 
+def get_skills(message):
+    if message.text == None:
+        bot.send_message(message.from_user.id, 'Введите, пожалуйста, текст\nНавыки и умения, которыми вы могли бы быть полезными фонду:')
+        bot.register_next_step_handler(message, get_skills)
+        return
+    global skill_dict
+    skill_dict[message.from_user.id] = message.text
+    bot.send_message(
+        message.from_user.id,
+        f"**Ваши данные**:\n\nФИО: {fio_dict.get(message.from_user.id)}\nГород: {city_dict.get(message.from_user.id)}\nВозраст: {age_dict.get(message.from_user.id)}\nСтепень диабета: {diabet_degree_dict.get(message.from_user.id)}\nНавыки и умения: {skill_dict.get(message.from_user.id)}\n\nВсе верно?"
+    )
 
 bot.polling()
 
