@@ -1,3 +1,4 @@
+import re
 import telebot, sqlite3, hashlib
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
@@ -29,18 +30,30 @@ def message_reply(message):
         bot.register_next_step_handler(message, get_surname)
 
 def get_surname(message):
+    if message.text == None or re.search(r"[\W\d]", message.text):
+        bot.send_message(message.from_user.id, 'Вводите, пожалуйста, текст.\nВведите фамилию:')
+        bot.register_next_step_handler(message, get_surname)
+        return
     global fio_dict
     fio_dict[message.from_user.id] = message.text
     bot.send_message(message.from_user.id, 'Введите имя:')
     bot.register_next_step_handler(message, get_name)
 
 def get_name(message):
+    if message.text == None or re.search(r"[\W\d]", message.text):
+        bot.send_message(message.from_user.id, 'Вводите, пожалуйста, текст.\nВведите имя:')
+        bot.register_next_step_handler(message, get_name)
+        return
     global fio_dict
     fio_dict[message.from_user.id] += str(" " + message.text)
     bot.send_message(message.from_user.id, 'Введите отчество:')
     bot.register_next_step_handler(message, get_patronymic)
 
 def get_patronymic(message):
+    if message.text == None or re.search(r"[\W\d]", message.text):
+        bot.send_message(message.from_user.id, 'Вводите, пожалуйста, текст.\nВведите отчество:')
+        bot.register_next_step_handler(message, get_patronymic)
+        return
     global fio_dict
     fio_dict[message.from_user.id] += str(" " + message.text)
     # bot.send_message(message.from_user.id, fio_dict.get(message.from_user.id))
@@ -48,18 +61,30 @@ def get_patronymic(message):
     bot.register_next_step_handler(message, get_city)
 
 def get_city(message):
+    if message.text == None:
+        bot.send_message(message.from_user.id, 'Вводите, пожалуйста, текст.\nВведите город:')
+        bot.register_next_step_handler(message, get_city)
+        return
     global city_dict
     city_dict[message.from_user.id] = message.text
     bot.send_message(message.from_user.id, 'Введите ваш возраст:')
     bot.register_next_step_handler(message, get_age)
 
 def get_age(message):
+    if message.text == None or not message.text.isdigit():
+        bot.send_message(message.from_user.id, 'Возраст должен быть числом.\nВведите ваш возраст:')
+        bot.register_next_step_handler(message, get_age)
+        return
     global age_dict
     age_dict[message.from_user.id] = int(message.text)
-    bot.send_message(message.from_user.id, 'Введите степень диабета (1, 2 или 3):')
+    bot.send_message(message.from_user.id, 'Введите степень диабета (1, 2 или 3) или 0 в случае отсутствия диабета:')
     bot.register_next_step_handler(message, get_diabet_degree)
 
 def get_diabet_degree(message):
+    if message.text == None or not message.text in ['0', '1', '2', '3']:
+        bot.send_message(message.from_user.id, 'Недопустимый вариант.\nВведите степень диабета (1, 2 или 3) или 0 в случае отсутствия диабета:')
+        bot.register_next_step_handler(message, get_diabet_degree)
+        return
     global age_dict
     diabet_degree_dict[message.from_user.id] = int(message.text)
     # bot.send_message(message.from_user.id, '')
