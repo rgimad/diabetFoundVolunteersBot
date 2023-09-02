@@ -90,18 +90,6 @@ def get_diabet_degree(message):
     diabet_degree_dict[message.from_user.id] = int(message.text)
     # bot.send_message(message.from_user.id, '')
     # bot.register_next_step_handler(message, )
-    conn = sqlite3.connect('database.db')
-    cur = conn.cursor()
-    cur.execute('INSERT INTO users (_id, fio, age, city, diabet) VALUES(?, ?, ?, ?, ?)',
-        (message.from_user.id,
-         fio_dict.get(message.from_user.id),
-         city_dict.get(message.from_user.id),
-         age_dict.get(message.from_user.id),
-         diabet_degree_dict.get(message.from_user.id)
-        )
-    )
-    conn.commit()
-    conn.close()
     bot.send_message(message.from_user.id, 'Навыки и умения, которыми вы могли бы быть полезными фонду:')
     bot.register_next_step_handler(message, get_skills)
 
@@ -112,6 +100,22 @@ def get_skills(message):
         return
     global skill_dict
     skill_dict[message.from_user.id] = message.text
+
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute('INSERT INTO users (_id, fio, age, city, diabet, skills) VALUES(?, ?, ?, ?, ?, ?)',
+        (message.from_user.id,
+         fio_dict.get(message.from_user.id),
+         city_dict.get(message.from_user.id),
+         age_dict.get(message.from_user.id),
+         diabet_degree_dict.get(message.from_user.id),
+         skill_dict.get(message.from_user.id)
+        )
+    )
+    conn.commit()
+    conn.close()
+
+
     bot.send_message(
         message.from_user.id,
         f"**Ваши данные**:\n\nФИО: {fio_dict.get(message.from_user.id)}\nГород: {city_dict.get(message.from_user.id)}\nВозраст: {age_dict.get(message.from_user.id)}\nСтепень диабета: {diabet_degree_dict.get(message.from_user.id)}\nНавыки и умения: {skill_dict.get(message.from_user.id)}\n\nВсе верно?"
