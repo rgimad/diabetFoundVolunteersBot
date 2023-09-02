@@ -64,10 +64,19 @@ def get_diabet_degree(message):
     diabet_degree_dict[message.from_user.id] = int(message.text)
     # bot.send_message(message.from_user.id, '')
     # bot.register_next_step_handler(message, )
-    bot.send_message(
-        message.from_user.id,
-        f"{fio_dict.get(message.from_user.id)}, {city_dict.get(message.from_user.id)}, {age_dict.get(message.from_user.id)}, {diabet_degree_dict.get(message.from_user.id)}"
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute('INSERT INTO users (_id, fio, age, city, diabet) VALUES(?, ?, ?, ?, ?)',
+        (message.from_user.id,
+         fio_dict.get(message.from_user.id),
+         city_dict.get(message.from_user.id),
+         age_dict.get(message.from_user.id),
+         diabet_degree_dict.get(message.from_user.id)
+        )
     )
+    conn.commit()
+    conn.close()
+    bot.send_message(message.from_user.id, "Личные данные записаны. Перейти к анкетированию?")
 
 
 bot.polling()
