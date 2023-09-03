@@ -29,11 +29,11 @@ def start_message(message):
         bot.send_message(message.chat.id,
             f"Вы уже заполняли анкету.\nВаши данные:\n\nФИО: {rows[0][0]}\nГород: {rows[0][1]}\nВозраст: {rows[0][2]}\nСтепень диабета: {rows[0][3]}\nНавыки и умения: {rows[0][4]}\nКонтакты: {rows[0][5]}\nДата заполнения: {rows[0][6]}"
         )
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         keyboard.add(KeyboardButton(text="Заполнить анкету заново"))
         bot.send_message(message.chat.id, "Нажмите, если вы хотите заполнить анкету заново", reply_markup=keyboard)
     else:
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         keyboard.add(KeyboardButton(text="Начать анкетирование!"))
         bot.send_message(message.chat.id, "Нажмите, чтобы начать анкетирование", reply_markup=keyboard)
 
@@ -176,7 +176,7 @@ def get_contacts(message):
     global contacts_dict
     contacts_dict[message.from_user.id] = message.text
 
-    keyboard_yes_no = ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard_yes_no = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     keyboard_yes_no.add(KeyboardButton(text="Да, все верно"))
     keyboard_yes_no.add(KeyboardButton(text="Заполнить анкету заново"))
     bot.send_message(
