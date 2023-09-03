@@ -7,6 +7,7 @@ city_dict = dict()
 age_dict = dict()
 diabet_degree_dict = dict()
 skill_dict = dict()
+contacts_dict = dict()
 
 with open('token.txt', 'r') as file:
     token = file.read().replace('\n', '')
@@ -17,18 +18,31 @@ def start_message(message):
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     button = KeyboardButton(text="Начать анкетирование!")
     keyboard.add(button)
-    # Send the keyboard as a reply to the /start command
     bot.send_message(message.chat.id, "Нажмите, чтобы начать анкетирование", reply_markup=keyboard)
 
-@bot.message_handler(commands=['info'])
-def help_message(message):
-    bot.send_message(message.chat.id, '')
+def write_all_to_db(user_id):
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute('INSERT INTO users (_id, fio, age, city, diabet, skills, contacts) VALUES(?, ?, ?, ?, ?, ?, ?)',
+        (user_id,
+         fio_dict.get(user_id),
+         city_dict.get(user_id),
+         age_dict.get(user_id),
+         diabet_degree_dict.get(user_id),
+         skill_dict.get(user_id),
+         contacts_dict.get(user_id)
+        )
+    )
+    conn.commit()
+    conn.close()
 
-@bot.message_handler(content_types='text')
-def message_reply(message):
-    if message.text == "Начать анкетирование!":
-        bot.send_message(message.from_user.id, "Введите фамилию: ")
-        bot.register_next_step_handler(message, get_surname)
+def clean_data_for(user_id):
+    fio_dict.pop(user_id, None)
+    city_dict.pop(user_id, None)
+    age_dict.pop(user_id, None)
+    diabet_degree_dict.pop(user_id, None)
+    skill_dict.pop(user_id, None)
+    contacts_dict.pop(user_id, None)
 
 def get_surname(message):
     if message.text == None or re.search(r"[\W\d]", message.text):
@@ -101,25 +115,41 @@ def get_skills(message):
     global skill_dict
     skill_dict[message.from_user.id] = message.text
 
-    conn = sqlite3.connect('database.db')
-    cur = conn.cursor()
-    cur.execute('INSERT INTO users (_id, fio, age, city, diabet, skills) VALUES(?, ?, ?, ?, ?, ?)',
-        (message.from_user.id,
-         fio_dict.get(message.from_user.id),
-         city_dict.get(message.from_user.id),
-         age_dict.get(message.from_user.id),
-         diabet_degree_dict.get(message.from_user.id),
-         skill_dict.get(message.from_user.id)
-        )
-    )
-    conn.commit()
-    conn.close()
+    bot.send_message(message.from_user.id, 'Введите ваш телефон/email:')
+    bot.register_next_step_handler(message, get_contacts)
 
+def get_contacts(message):
+    if message.text == None:
+        bot.send_message(message.from_user.id, 'Введите, пожалуйста, текст\nВведите ваш телефон/email:')
+        bot.register_next_step_handler(message, get_contacts)
+        return
+    
+    global contacts_dict
+    contacts_dict[message.from_user.id] = message.text
 
+    keyboard_yes_no = ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard_yes_no.add(KeyboardButton(text="Да, все верно"))
+    keyboard_yes_no.add(KeyboardButton(text="Пройти анкету заново"))
     bot.send_message(
         message.from_user.id,
-        f"**Ваши данные**:\n\nФИО: {fio_dict.get(message.from_user.id)}\nГород: {city_dict.get(message.from_user.id)}\nВозраст: {age_dict.get(message.from_user.id)}\nСтепень диабета: {diabet_degree_dict.get(message.from_user.id)}\nНавыки и умения: {skill_dict.get(message.from_user.id)}\n\nВсе верно?"
+        f"Ваши данные:\n\nФИО: {fio_dict.get(message.from_user.id)}\nГород: {city_dict.get(message.from_user.id)}\nВозраст: {age_dict.get(message.from_user.id)}\nСтепень диабета: {diabet_degree_dict.get(message.from_user.id)}\nНавыки и умения: {skill_dict.get(message.from_user.id)}\nКонтакты: {contacts_dict.get(message.from_user.id)}\n\nВсе верно?",
+        reply_markup=keyboard_yes_no
     )
+
+
+@bot.message_handler(content_types='text')
+def message_reply(message):
+    if message.text == "Начать анкетирование!":
+        bot.send_message(message.from_user.id, "Введите фамилию: ")
+        bot.register_next_step_handler(message, get_surname)
+    elif message.text == "Да, все верно":
+        write_all_to_db(message.from_user.id)
+        bot.send_message(message.from_user.id, "Спасибо за заявку, мы с вами свяжемся.")
+    elif message.text == "Пройти анкету заново":
+        clean_data_for(message.from_user.id)
+        start_message()
+    else:
+        bot.send_message(message.from_user.id, "Ошибка: неизвестная команда. ")
 
 bot.polling()
 

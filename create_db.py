@@ -12,7 +12,8 @@ c.execute('''CREATE TABLE users (
             age INTEGER,
             city TEXT,
             diabet TEXT,
-            skills TEXT
+            skills TEXT,
+            contacts TEXT
         )''')
 
 # c.execute('''CREATE TABLE skills (
