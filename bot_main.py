@@ -18,7 +18,7 @@ def start_message(message):
     button = KeyboardButton(text="Начать анкетирование!")
     keyboard.add(button)
     # Send the keyboard as a reply to the /start command
-    bot.send_message(message.chat.id, "Добро пожаловать на нашу анкету!☺️\nДля начала предлагаю познакомится. Расскажите немного о себе в форме опроса.\nПожалуйста, будьте внимательны и введите точную информацию, это поможет нам обработать вашу анкету более эффективно.", reply_markup=keyboard)
+    bot.send_message(message.chat.id, "Нажмите, чтобы начать анкетирование", reply_markup=keyboard)
 
 @bot.message_handler(commands=['info'])
 def help_message(message):
