@@ -3,6 +3,7 @@ import telebot, sqlite3, hashlib
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 from xlsxwriter.workbook import Workbook
 from datetime import datetime
+import csv
 
 admin_password_hash = '44fe45de0bee447b6a9101036c54b81b'
 
@@ -49,6 +50,10 @@ def admin_login(message):
         export_db_to_excel('output.xlsx')
         with open('output.xlsx', 'rb') as f:
             bot.send_document(message.chat.id, f)
+        
+        export_db_to_csv('output.csv')
+        with open('output.csv', 'rb') as f:
+            bot.send_document(message.chat.id, f)
     else:
         bot.send_message(message.chat.id, "Ошибка: неверный пароль администратора.")
 
@@ -67,6 +72,16 @@ def export_db_to_excel(fname):
     worksheet.autofit()
     workbook.close()
     conn.close()
+
+def export_db_to_csv(fname):
+    with sqlite3.connect("database.db") as conn:
+        csvWriter = csv.writer(open(fname, "w", encoding="utf-8", newline=''))
+        c = conn.cursor()
+        c.execute("select fio, age, city, diabet, skills, contacts, fill_date from users")
+        rows = c.fetchall()
+        csvWriter.writerow(['ФИО', 'Возраст', 'Город', 'Степень диабета', 'Навыки', 'Контакты', 'Дата заполнения'])
+        for x in rows:
+            csvWriter.writerow(x)
 
 def write_all_to_db(user_id):
     if fio_dict.get(user_id) == None:

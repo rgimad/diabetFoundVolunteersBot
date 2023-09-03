@@ -1,4 +1,6 @@
 env/
 token.txt
 test_db_to_xlsx.py
+test_db_to_csv.py
 *.xlsx
+*.csv
