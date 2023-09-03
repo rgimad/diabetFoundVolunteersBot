@@ -54,6 +54,10 @@ def admin_login(message):
         export_db_to_csv('output.csv')
         with open('output.csv', 'rb') as f:
             bot.send_document(message.chat.id, f)
+
+        export_db_to_html("output.html")
+        with open('output.html', 'rb') as f:
+            bot.send_document(message.chat.id, f)
     else:
         bot.send_message(message.chat.id, "Ошибка: неверный пароль администратора.")
 
@@ -82,6 +86,25 @@ def export_db_to_csv(fname):
         csvWriter.writerow(['ФИО', 'Возраст', 'Город', 'Степень диабета', 'Навыки', 'Контакты', 'Дата заполнения'])
         for x in rows:
             csvWriter.writerow(x)
+
+def export_db_to_html(fname):
+    with sqlite3.connect("database.db") as connection:
+        html = '<table border=1>'
+        c = connection.cursor()
+        c.execute("select fio, age, city, diabet, skills, contacts, fill_date from users")
+        rows = c.fetchall()
+        html += '<tr>'
+        for x in ['ФИО', 'Возраст', 'Город', 'Степень диабета', 'Навыки', 'Контакты', 'Дата заполнения']:
+            html += f"<th bgcolor=\"#33ff99\">{x}</th>"
+        html += "</tr>\n"
+        for r in rows:
+            html += '<tr>'
+            for x in r:
+                html += f"<td bgcolor=\"#ccd8ff\">{x}</td>"
+            html += "</tr>\n"
+        html += '</table>'
+        with open(fname, 'w', encoding="utf-8", newline='') as f:
+            f.write(html)
 
 def write_all_to_db(user_id):
     if fio_dict.get(user_id) == None:
