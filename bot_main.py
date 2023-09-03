@@ -28,7 +28,7 @@ def start_message(message):
     conn.close()
     if rows:
         bot.send_message(message.chat.id,
-            f"Вы уже заполняли анкету.\nВаши данные:\n\nФИО: {rows[0][0]}\nГород: {rows[0][1]}\nВозраст: {rows[0][2]}\nСтепень диабета: {rows[0][3]}\nНавыки и умения: {rows[0][4]}\nКонтакты: {rows[0][5]}\nДата заполнения: {rows[0][6]}"
+            f"Вы уже заполняли анкету.\nВаши данные:\n\nФИО: {rows[0][0]}\nГород: {rows[0][2]}\nВозраст: {rows[0][1]}\nСтепень диабета: {rows[0][3]}\nНавыки и умения: {rows[0][4]}\nКонтакты: {rows[0][5]}\nДата заполнения: {rows[0][6]}"
         )
         keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         keyboard.add(KeyboardButton(text="Заполнить анкету заново"))
