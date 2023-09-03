@@ -193,7 +193,7 @@ def message_reply(message):
         bot.register_next_step_handler(message, get_surname)
     elif message.text == "Да, все верно":
         write_all_to_db(message.from_user.id)
-        bot.send_message(message.chat.id, "Спасибо за заявку, мы с вами свяжемся.")
+        bot.send_message(message.chat.id, "Заявка принята! Мы свяжемся с вами позже.")
     elif message.text == "Заполнить анкету заново":
         clean_data_for(message.from_user.id)
         bot.send_message(message.chat.id, "Введите фамилию: ")
