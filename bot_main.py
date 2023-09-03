@@ -69,6 +69,8 @@ def export_db_to_excel(fname):
     conn.close()
 
 def write_all_to_db(user_id):
+    if fio_dict.get(user_id) == None:
+        return
     conn = sqlite3.connect('database.db')
     cur = conn.cursor()
     cur.execute('INSERT OR REPLACE INTO users (_id, fio, age, city, diabet, skills, contacts, fill_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
