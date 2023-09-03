@@ -15,15 +15,28 @@ bot = telebot.TeleBot(token)
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-    button = KeyboardButton(text="Начать анкетирование!")
-    keyboard.add(button)
-    bot.send_message(message.chat.id, "Нажмите, чтобы начать анкетирование", reply_markup=keyboard)
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute('SELECT fio, age, city, diabet, skills, contacts FROM users WHERE _id = ' + str(message.from_user.id))
+    print(message.from_user.id)
+    rows = cur.fetchall()
+    conn.close()
+    if rows:
+        bot.send_message(message.from_user.id,
+            f"Вы уже заполняли анкету.\nВаши данные:\n\nФИО: {rows[0][0]}\nГород: {rows[0][1]}\nВозраст: {rows[0][2]}\nСтепень диабета: {rows[0][3]}\nНавыки и умения: {rows[0][4]}\nКонтакты: {rows[0][5]}"
+        )
+        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard.add(KeyboardButton(text="Заполнить анкету заново"))
+        bot.send_message(message.from_user.id, "Нажмите, если вы хотите заполнить анкету заново", reply_markup=keyboard)
+    else:
+        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+        keyboard.add(KeyboardButton(text="Начать анкетирование!"))
+        bot.send_message(message.chat.id, "Нажмите, чтобы начать анкетирование", reply_markup=keyboard)
 
 def write_all_to_db(user_id):
     conn = sqlite3.connect('database.db')
     cur = conn.cursor()
-    cur.execute('INSERT INTO users (_id, fio, age, city, diabet, skills, contacts) VALUES(?, ?, ?, ?, ?, ?, ?)',
+    cur.execute('INSERT OR REPLACE INTO users (_id, fio, age, city, diabet, skills, contacts) VALUES(?, ?, ?, ?, ?, ?, ?)',
         (user_id,
          fio_dict.get(user_id),
          city_dict.get(user_id),
@@ -129,7 +142,7 @@ def get_contacts(message):
 
     keyboard_yes_no = ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard_yes_no.add(KeyboardButton(text="Да, все верно"))
-    keyboard_yes_no.add(KeyboardButton(text="Пройти анкету заново"))
+    keyboard_yes_no.add(KeyboardButton(text="Заполнить анкету заново"))
     bot.send_message(
         message.from_user.id,
         f"Ваши данные:\n\nФИО: {fio_dict.get(message.from_user.id)}\nГород: {city_dict.get(message.from_user.id)}\nВозраст: {age_dict.get(message.from_user.id)}\nСтепень диабета: {diabet_degree_dict.get(message.from_user.id)}\nНавыки и умения: {skill_dict.get(message.from_user.id)}\nКонтакты: {contacts_dict.get(message.from_user.id)}\n\nВсе верно?",
@@ -145,9 +158,10 @@ def message_reply(message):
     elif message.text == "Да, все верно":
         write_all_to_db(message.from_user.id)
         bot.send_message(message.from_user.id, "Спасибо за заявку, мы с вами свяжемся.")
-    elif message.text == "Пройти анкету заново":
+    elif message.text == "Заполнить анкету заново":
         clean_data_for(message.from_user.id)
-        start_message()
+        bot.send_message(message.from_user.id, "Введите фамилию: ")
+        bot.register_next_step_handler(message, get_surname)
     else:
         bot.send_message(message.from_user.id, "Ошибка: неизвестная команда. ")
 
