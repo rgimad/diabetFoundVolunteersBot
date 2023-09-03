@@ -2,6 +2,7 @@ import re
 import telebot, sqlite3, hashlib
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 from xlsxwriter.workbook import Workbook
+from datetime import datetime
 
 admin_password_hash = '44fe45de0bee447b6a9101036c54b81b'
 
@@ -20,13 +21,13 @@ bot = telebot.TeleBot(token)
 def start_message(message):
     conn = sqlite3.connect('database.db')
     cur = conn.cursor()
-    cur.execute('SELECT fio, age, city, diabet, skills, contacts FROM users WHERE _id = ' + str(message.from_user.id))
+    cur.execute('SELECT fio, age, city, diabet, skills, contacts, fill_date FROM users WHERE _id = ' + str(message.from_user.id))
     # print(message.from_user.id)
     rows = cur.fetchall()
     conn.close()
     if rows:
         bot.send_message(message.chat.id,
-            f"Вы уже заполняли анкету.\nВаши данные:\n\nФИО: {rows[0][0]}\nГород: {rows[0][1]}\nВозраст: {rows[0][2]}\nСтепень диабета: {rows[0][3]}\nНавыки и умения: {rows[0][4]}\nКонтакты: {rows[0][5]}"
+            f"Вы уже заполняли анкету.\nВаши данные:\n\nФИО: {rows[0][0]}\nГород: {rows[0][1]}\nВозраст: {rows[0][2]}\nСтепень диабета: {rows[0][3]}\nНавыки и умения: {rows[0][4]}\nКонтакты: {rows[0][5]}\nДата заполнения: {rows[0][6]}"
         )
         keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
         keyboard.add(KeyboardButton(text="Заполнить анкету заново"))
@@ -57,8 +58,8 @@ def export_db_to_excel(fname):
     worksheet = workbook.add_worksheet()
     conn=sqlite3.connect('database.db')
     c = conn.cursor()
-    mysel = c.execute("select fio, age, city, diabet, skills, contacts from users")
-    for j, x in enumerate(['ФИО', 'Возраст', 'Город', 'Степень диабета', 'Навыки', 'Контакты']):
+    mysel = c.execute("select fio, age, city, diabet, skills, contacts, fill_date from users")
+    for j, x in enumerate(['ФИО', 'Возраст', 'Город', 'Степень диабета', 'Навыки', 'Контакты', 'Дата заполнения']):
         worksheet.write(0, j, x, workbook.add_format({'bold': True}))
     for i, row in enumerate(mysel):
         for j, value in enumerate(row):
@@ -70,14 +71,15 @@ def export_db_to_excel(fname):
 def write_all_to_db(user_id):
     conn = sqlite3.connect('database.db')
     cur = conn.cursor()
-    cur.execute('INSERT OR REPLACE INTO users (_id, fio, age, city, diabet, skills, contacts) VALUES(?, ?, ?, ?, ?, ?, ?)',
+    cur.execute('INSERT OR REPLACE INTO users (_id, fio, age, city, diabet, skills, contacts, fill_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
         (user_id,
          fio_dict.get(user_id),
          city_dict.get(user_id),
          age_dict.get(user_id),
          diabet_degree_dict.get(user_id),
          skill_dict.get(user_id),
-         contacts_dict.get(user_id)
+         contacts_dict.get(user_id),
+         datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
     )
     conn.commit()
